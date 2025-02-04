@@ -1,66 +1,72 @@
-const express = require('express');
-const multer = require('multer');
-const xlsx = require('xlsx');
-const mysql = require('mysql2');
-const cors = require('cors');
-const dotenv = require('dotenv');
+const express = require("express");
+const multer = require("multer");
+const xlsx = require("xlsx");
+const cors = require("cors");
+const puppeteer = require("puppeteer");
+const path = require("path");
+const fs = require("fs");
 
-// Initialize environment variables
-dotenv.config();
-
-// Initialize app
 const app = express();
-const port = 4000;
 
-// Use CORS to allow requests from Laravel
 app.use(cors());
+app.use(express.json());
 
-// Set up file upload using Multer
-const storage = multer.memoryStorage();
-const upload = multer({ storage: storage });
+// Ensure "uploads" directory exists
+const uploadDir = "uploads/";
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir);
+}
 
-// MySQL Database Connection
-const db = mysql.createConnection({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASS,
-    database: process.env.DB_NAME,
+// Configure Multer for file uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads/"); // Save uploaded files in "uploads" folder
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, uniqueSuffix + path.extname(file.originalname)); // Unique file name
+  },
 });
 
-db.connect((err) => {
-    if (err) throw err;
-    console.log('Connected to MySQL database');
-});
-
-// POST /upload route to handle file upload
-app.post('/upload', upload.single('file'), (req, res) => {
-    if (!req.file) {
-        return res.status(400).send({ message: 'No file uploaded' });
+const upload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // Max file size: 5MB
+  fileFilter: (req, file, cb) => {
+    // Allow only .xls and .xlsx
+    if (!file.originalname.match(/\.(xls|xlsx)$/)) {
+      return cb(new Error("Only Excel files are allowed!"), false);
     }
-
-    // Read the Excel file
-    const workbook = xlsx.read(req.file.buffer, { type: 'buffer' });
-    const sheet_name_list = workbook.SheetNames;
-    const users = xlsx.utils.sheet_to_json(workbook.Sheets[sheet_name_list[0]]);
-
-    // Insert users into the database
-    users.forEach((user) => {
-        const { name, email, status } = user;
-
-        // SQL query to insert data into the 'users' table
-        const query = `INSERT INTO users (name, email, status) VALUES (?, ?, ?)`;
-        db.query(query, [name, email, status], (err, result) => {
-            if (err) {
-                console.error('Error inserting data:', err);
-                return res.status(500).send({ message: 'Error inserting data into database' });
-            }
-        });
-    });
-
-    return res.send({ message: 'Users imported successfully' });
+    cb(null, true);
+  },
 });
 
-// Start the server
-app.listen(port, () => {
-    console.log(`Node.js server running on http://localhost:${port}`);
+// Route to upload and process Excel file
+app.post("/upload", upload.single("file"), async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: "No file uploaded" });
+  }
+
+  try {
+    console.log("Uploaded File:", req.file);
+
+    // Read Excel file
+    const workbook = xlsx.readFile(req.file.path);
+    const sheetName = workbook.SheetNames[0];
+    const data = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
+
+    console.log("Excel Data:", data); // Debugging output
+
+    res.json({ message: "File uploaded and processed", data });
+  } catch (error) {
+    console.error("Error processing file:", error);
+    res.status(500).json({ error: "Failed to process Excel file" });
+  }
 });
+
+// Start server
+const PORT = 5000;
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
+});
+
+
