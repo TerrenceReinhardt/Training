@@ -3,8 +3,6 @@
 @section('content')
     <div class="container">
         <h2>Upload Excel File to Add Users</h2>
-
-        <!-- Display success or error messages -->
         @if(session('message'))
             <div class="alert alert-success">
                 {{ session('message') }}
@@ -14,8 +12,6 @@
                 {{ session('error') }}
             </div>
         @endif
-
-        <!-- Form to upload Excel file -->
         <form action="{{ url('/upload-excel') }}" method="POST" enctype="multipart/form-data">
             @csrf
             <div class="form-group">

@@ -34,7 +34,7 @@ class UserController extends Controller
         User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'status' => 'Success', // Mark the status as 'Success' when the user is added
+            'status' => 'Success',
         ]);
     
         return redirect()->route('users.index')->with('success', 'User added successfully.');

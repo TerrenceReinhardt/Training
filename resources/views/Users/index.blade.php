@@ -4,14 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Management</title>
-    
-    <!-- Add DataTables CSS -->
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.1/css/jquery.dataTables.min.css">
-
-    <!-- Add jQuery (required by DataTables) -->
     <script type="text/javascript" charset="utf8" src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-    <!-- Add DataTables JS -->
     <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.min.js"></script>
 
     <style>
@@ -109,8 +103,6 @@
             </tbody>
         </table>
     </div>
-
-    <!-- Initialize DataTables -->
     <script>
         $(document).ready(function() {
             $('#usersTable').DataTable({
