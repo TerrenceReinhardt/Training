@@ -24,29 +24,29 @@ Route::get('/', function () {
 Route::get('/users', [UserController::class, 'index'])->name('users.index');
 Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
 Route::post('/users/store', [UserController::class, 'store'])->name('users.store');
-Route::get('/upload', function () {
-    return view('upload');
-});
-Route::post('/upload-excel', function (Request $request) {
-    $request->validate([
-        'file' => 'required|mimes:xlsx'
-    ]);
+// Route::get('/upload', function () {
+//     return view('upload');
+// });
+// Route::post('/upload-excel', function (Request $request) {
+//     $request->validate([
+//         'file' => 'required|mimes:xlsx'
+//     ]);
 
-    $file = $request->file('file');
+//     $file = $request->file('file');
 
-    try {
-        $response = Http::attach(
-            'file',
-            file_get_contents($file->getRealPath()),
-            $file->getClientOriginalName()
-        )->post('http://localhost:4000/upload');
+//     try {
+//         $response = Http::attach(
+//             'file',
+//             file_get_contents($file->getRealPath()),
+//             $file->getClientOriginalName()
+//         )->post('http://localhost:4000/upload');
 
-        if ($response->successful()) {
-            return back()->with('message', 'Users imported successfully!');
-        } else {
-            return back()->with('error', 'Error while importing users.');
-        }
-    } catch (\Exception $e) {
-        return back()->with('error', 'An error occurred: ' . $e->getMessage());
-    }
-});
+//         if ($response->successful()) {
+//             return back()->with('message', 'Users imported successfully!');
+//         } else {
+//             return back()->with('error', 'Error while importing users.');
+//         }
+//     } catch (\Exception $e) {
+//         return back()->with('error', 'An error occurred: ' . $e->getMessage());
+//     }
+// });
