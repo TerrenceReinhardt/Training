@@ -51,5 +51,21 @@ class User extends Authenticatable
         }
         });
     }
+    public function store(Request $request)
+    {
+    // Validate the data
+    $request->validate([
+        'name' => 'required|string|max:255',
+        'email' => 'required|email|unique:users,email',
+    ]);
 
+    // Create the new user
+    $user = User::create([
+        'name' => $request->name,
+        'email' => $request->email,
+    ]);
+
+    // Redirect back to the index page with a success message
+    return redirect()->route('users.index')->with('success', 'User added successfully');
+    }
 }
