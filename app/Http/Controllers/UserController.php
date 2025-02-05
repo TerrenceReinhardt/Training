@@ -7,11 +7,32 @@ use App\Models\User;
 
 class UserController extends Controller
 {
+    // Display the UMS Management System (list of users)
     public function index()
     {
+        // Retrieve all users from the database
         $users = User::all();
+        // Return the view (for example, resources/views/users/index.blade.php)
+        // and pass the users collection to it.
         return view('users.index', compact('users'));
-        return response()->json(User::all());
+    }
+
+    // Add a new user (for create.blade.php & Node.js)
+    public function store(Request $request)
+    {
+        $validatedData = $request->validate([
+            'name'  => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+        ]);
+
+        try {
+            $user = User::create($validatedData);
+            // Redirect back with a success message
+            return redirect()->back()->with('success', 'User created successfully.');
+        } catch (\Exception $e) {
+            // Redirect back with an error message
+            return redirect()->back()->with('error', 'Error: ' . $e->getMessage());
+        }
     }
 
     public function create()
@@ -19,25 +40,25 @@ class UserController extends Controller
         return view('users.create');
     }
 
-    public function store(Request $request)
+    // Update an existing user if email exists
+    public function update(Request $request, $id)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-        ]);
-    
-        $existingUser = User::where('name', $request->name)->where('email', $request->email)->first();
-    
-        if ($existingUser) {
-            return redirect()->route('users.index')->with('error', 'User already exists.');
+        $user = User::find($id);
+        if (!$user) {
+            return redirect()->back()->with('error', 'User not found.');
         }
-    
-        User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'status' => 'Success',
+
+        $validatedData = $request->validate([
+            'name'  => 'sometimes|string|max:255',
+            'email' => 'sometimes|email|unique:users,email,' . $id,
         ]);
-    
-        return redirect()->route('users.index')->with('success', 'User added successfully.');
+
+        try {
+            $user->update($validatedData);
+            return redirect()->back()->with('success', 'User updated successfully.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error: ' . $e->getMessage());
+        }
     }
 }
+
